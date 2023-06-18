@@ -13,20 +13,23 @@
 
 typedef struct Program_s {
     uint32_t  id;
-    char      *name
+    char      *name;
     char      *path;
     uint32_t  program_type_flags;
-    Program_t *next;
+    struct Program_s *next;
 } Program_t;
 
 typedef struct Program_List_s {
     struct Program_s *head;
+    struct Program_s *tail;
     int              count;
 } Program_List_t;
 
-int add(Program_s *new_prog);
+int process_user_input(int argc, char **argv);
+int insert(struct Program_s *new_prog);
 int build_struct(char *prog_name);
-int remove(int id_to_remove);
+int remove_program(int id_to_remove);
+int free_list(struct Program_List_s *list);
 
 /* File write and read related functions */
 int write_list();
