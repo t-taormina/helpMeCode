@@ -12,7 +12,8 @@ CFLAGS = $(DEBUG) -Wall -Wshadow -Wextra -Wunreachable-code -Wredundant-decls \
 
 PROG1 = helpme
 PROG2 = linked_list
-PROGS = $(PROG1)  
+PROG3 = bin_cat
+PROGS = $(PROG1) $(PROG3) 
 
 INCLUDES = linked_list.h
 
@@ -25,6 +26,9 @@ $(PROG1).o: $(PROG1).c $(INCLUDES)
 	$(CC) $(CFLAGS) -c $<
 
 $(PROG2).o: $(PROG2).c $(INCLUDES)
+	$(CC) $(CFLAGS) -c $<
+
+$(PROG3).o: $(PROG3).c $(INCLUDES)
 	$(CC) $(CFLAGS) -c $<
 
 clean cls: 

@@ -2,9 +2,14 @@
 
 #include "linked_list.h"
 
+extern unsigned short is_verbose;
+extern unsigned short id_global;
 int 
-main(void)
+main(int argc, char **argv)
 {
-    printf("hello, tillman\n");
-    return EXIT_SUCCESS;
+    int ret = -1;
+
+    process_cmdline(argc, argv);
+    ret = run_process();
+    return ret;
 }
