@@ -4,20 +4,16 @@
 
 unsigned short is_verbose = 0;
 unsigned short id_global = 1;
+program_list_t *program_list = NULL;
+char *arg_pname= NULL;
+int arg_id = -1;
 
 int
 run_process(void)
 {
-    program_list_t *program_list = NULL;
-    program_list = (program_list_t *) calloc(1, sizeof(program_list_t));
-    read_list(program_list);
-    for ( ; ; ) {
-        /* Menu here */
-        print_list(program_list);
-        break;
-    }
-    write_list(program_list);
-    free_list(program_list);
+    print_list();
+    write_list();
+    free_list();
     return 0;
 }
 
@@ -25,12 +21,16 @@ int
 process_cmdline(int argc, char **argv)
 {
     int opt;
-    //char buf[MAX_PATH_LEN];
+    program_t *prog = NULL;
+
+    program_list = (program_list_t *) calloc(1, sizeof(program_list_t));
+    read_list();
 
     while((opt = getopt(argc, argv, OPTIONS)) != -1) {
         switch(opt) {
             case 'h':
-                printf("help message here\n");
+                printf("%s [arguments]\n\tv - enable verbose mode\n\ta - add new program by giving program name from within program path\n\tr - remove program by id number\n", argv[0]);
+                exit(EXIT_SUCCESS);
                 break;
 
             case 'v':
@@ -38,10 +38,20 @@ process_cmdline(int argc, char **argv)
                 printf("Verbose mode enabled\n");
                 break;
 
-            case 'p':
+            case 'a':
+                arg_pname = strdup(optarg);
+                prog = build_prog(arg_pname);
+                insert(prog);
+                print_list();
+                break;
+
+            case 'r':
+                arg_id = atoi(optarg);
+                remove_program(arg_id);
                 break;
 
             default:
+                exit(EXIT_SUCCESS);
                 break;
         }
     }
@@ -49,7 +59,7 @@ process_cmdline(int argc, char **argv)
 }
 
 int 
-insert(program_t *new_prog, program_list_t *program_list)
+insert(program_t *new_prog)
 {
     if (NULL == new_prog) {
         return -1;
@@ -65,21 +75,58 @@ insert(program_t *new_prog, program_list_t *program_list)
     return program_list->count;
 }
 
-int 
+program_t * 
 build_prog(char *prog_name)
 {
-    return 0;
+    program_t *new_prog = NULL;
+    char cwd[MAX_PATH_LEN] = {'\0'};
+
+    new_prog = (program_t *) calloc(1, sizeof(program_t));
+    id_global++;
+    new_prog->id = id_global;
+    strcpy(new_prog->name, prog_name);
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        perror("getcwd() error");
+        exit(EXIT_FAILURE);
+    }
+    strcpy(new_prog->path, cwd);
+    new_prog->program_type_flags = 0;
+    new_prog->next = NULL;
+    return new_prog;
 }
 
 int 
-remove_program(int id_to_remove)
+remove_program(int id)
 {
+    program_t *curr= NULL;
+    program_t *prev = NULL;
+
+    if (id < 1) {
+        fprintf(stderr, "Invalid id number\n");
+        return -1;
+    }
+
+    if (NULL == program_list || NULL == program_list->head) {
+        fprintf(stderr, "The list is empty\n");
+        return 0;
+    }
+
+    temp = program_list->head;
+    while(NULL != temp->next) {
+        /* first node - head */
+
+        /* middle node */
+
+        /* last node - tail */
+    }
+
     return 0;
 }
 
 int 
 init_file(void)
 {
+    int ofd = -1;
     program_t prog1 = {
         id_global
         , "helpme"
@@ -88,13 +135,14 @@ init_file(void)
         , NULL};
 
     program_t prog2 = {
-        ++id_global
+        id_global + 1
         , "primesMT"
         , "/home/tylr/Development/School/CS333/labs/lab4"
         , 0
         , NULL};
 
-    int ofd = -1;
+    id_global++;
+
     ofd = open(FILE_NAME
             , O_WRONLY | O_TRUNC | O_CREAT
             , S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -111,16 +159,16 @@ init_file(void)
 }
 
 int 
-write_list(program_list_t *prog_list)
+write_list(void)
 {
     program_t *temp = NULL;
     int ofd;
 
-    if (NULL == prog_list) {
+    if (NULL == program_list) {
         return 1;
     }
 
-    temp = prog_list->head;
+    temp = program_list->head;
     ofd = -1;
     ofd = open(FILE_NAME
             , O_WRONLY | O_TRUNC | O_CREAT
@@ -131,7 +179,6 @@ write_list(program_list_t *prog_list)
         exit(EXIT_FAILURE);
     }
 
-
     while(NULL != temp) {
         write(ofd, temp, sizeof(program_t));
         temp = temp->next;
@@ -141,7 +188,7 @@ write_list(program_list_t *prog_list)
 }
 
 int 
-read_list(program_list_t *prog_list)
+read_list(void)
 {
     program_t temp = {0, "", "", 0, NULL};
 
@@ -160,11 +207,12 @@ read_list(program_list_t *prog_list)
     while(read(ifd, &temp, sizeof(program_t)) > 0) {
         program_t *new_prog = (program_t *) calloc(1, sizeof(program_t));
         new_prog->id = temp.id;
+        id_global = temp.id;
         strcpy(new_prog->name, temp.name);
         strcpy(new_prog->path, temp.path);
         new_prog->program_type_flags = temp.program_type_flags;
         new_prog->next = NULL;
-        insert(new_prog, prog_list);
+        insert(new_prog);
     }
     close(ifd);
 
@@ -172,11 +220,11 @@ read_list(program_list_t *prog_list)
 }
 
 int 
-print_list(program_list_t *prog_list)
+print_list(void)
 {
     program_t *temp = NULL;
 
-    if (NULL == prog_list->head) {
+    if (NULL == program_list->head) {
         return 1;
     }
 
@@ -184,38 +232,40 @@ print_list(program_list_t *prog_list)
         fprintf(stderr, "printing list\n");
     }
 
-    temp = prog_list->head;
+    temp = program_list->head;
     while(NULL != temp) {
         printf("ID: %d\n\tName of program: %s\n\tPath to program: %s\n"
                 , temp->id, temp->name, temp->path);
         temp = temp->next;
     }
+
     return 0;
 }
 
 int 
-free_list(program_list_t *list)
+free_list(void)
 {
     int count;
     program_t *temp = NULL;
 
-    if (NULL == list) { return 0; }
+    if (NULL == program_list) { return 0; }
 
     if (is_verbose) {
         fprintf(stderr, "freeing list\n");
     }
 
     count = 0;
-    while (NULL != list->head) {
-        temp = list->head->next;
+    while (NULL != program_list->head) {
+        temp = program_list->head->next;
         if (is_verbose) {
             fprintf(stderr, "freeing node\n");
         }
-        free(list->head);
-        list->head = temp;
+        free(program_list->head);
+        program_list->head = temp;
         count++;
     }
-    free(list);
-    list = NULL;
+    free(program_list);
+    program_list = NULL;
+
     return count;
 }

@@ -4,6 +4,7 @@
 
 extern unsigned short is_verbose;
 extern unsigned short id_global;
+
 int 
 main(int argc, char **argv)
 {

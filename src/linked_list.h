@@ -15,7 +15,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-#define OPTIONS "hvp:"
+#define OPTIONS "hva:r:"
 #define MAX_PATH_LEN 200
 #define MAX_NAME_LEN 25
 #define FILE_NAME "helpme.bin"
@@ -42,13 +42,13 @@ typedef struct program_list_s {
 
 int run_process(void);
 int process_cmdline(int, char **);
-int insert(struct program_s *, struct program_list_s *);
-int build_prog(char *);
+int insert(struct program_s *);
+struct program_s *build_prog(char *);
 int remove_program(int);
-int free_list(struct program_list_s *);
-int print_list(struct program_list_s *);
-int write_list(struct program_list_s *);
+int free_list(void);
+int print_list(void);
+int write_list(void);
 int init_file(void);
-int read_list(struct program_list_s *);
+int read_list(void);
 
 #endif // _LINKED_LIST_H
