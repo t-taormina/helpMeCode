@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string.h>
 
 #define OPTIONS "hvp:"
 #define MAX_PATH_LEN 200
@@ -25,6 +26,7 @@ typedef struct program_s {
     char      name[MAX_NAME_LEN];
     char      path[MAX_PATH_LEN];
     uint32_t  program_type_flags;
+    struct program_s *next;
 } program_t;
 
 typedef struct program_node_s {
@@ -33,18 +35,20 @@ typedef struct program_node_s {
 } program_node_t;
 
 typedef struct program_list_s {
-    struct program_node_s *head;
-    struct program_node_s *tail;
-    int                   count;
+    struct program_s *head;
+    struct program_s *tail;
+    int              count;
 } program_list_t;
 
 int run_process(void);
 int process_cmdline(int, char **);
 int insert(struct program_s *, struct program_list_s *);
-int build_struct(char *);
+int build_prog(char *);
 int remove_program(int);
 int free_list(struct program_list_s *);
-int write_list(void);
+int print_list(struct program_list_s *);
+int write_list(struct program_list_s *);
+int init_file(void);
 int read_list(struct program_list_s *);
 
 #endif // _LINKED_LIST_H

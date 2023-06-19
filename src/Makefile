@@ -35,7 +35,7 @@ clean cls:
 	rm -f $(PROGS) *.o *~ \#* *.txt
 
 test:
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt ./primesMT && tail valgrind-out.txt
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=valgrind-out.txt ./helpme && tail valgrind-out.txt
 
 tar: 
 	tar cvfa taormina_helpme.tar.gz *.[ch] [mM]akefile

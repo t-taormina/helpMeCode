@@ -9,6 +9,7 @@ main(int argc, char **argv)
 {
     int ret = -1;
 
+    //init_file();
     process_cmdline(argc, argv);
     ret = run_process();
     return ret;

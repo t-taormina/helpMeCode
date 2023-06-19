@@ -14,7 +14,7 @@
 int
 main(void)
 {
-    program_t temp = {0, "", "", 0};
+    program_t temp = {0, "", "", 0, NULL};
     int ifd = -1;
 
     ifd = open(FILE_NAME, O_RDONLY);
