@@ -10,6 +10,7 @@
 #include <fcntl.h>
 
 #include "linked_list.h"
+unsigned short id_global = 1;
 
 int
 main(void)

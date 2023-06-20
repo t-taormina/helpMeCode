@@ -8,14 +8,6 @@ program_list_t *program_list = NULL;
 char *arg_pname= NULL;
 int arg_id = -1;
 
-int
-run_process(void)
-{
-    print_list();
-    write_list();
-    free_list();
-    return 0;
-}
 
 int 
 process_cmdline(int argc, char **argv)
@@ -42,13 +34,12 @@ process_cmdline(int argc, char **argv)
                 arg_pname = strdup(optarg);
                 prog = build_prog(arg_pname);
                 insert(prog);
-                print_list();
+                free(arg_pname);
                 break;
 
             case 'r':
                 arg_id = atoi(optarg);
                 remove_program(arg_id);
-                print_list();
                 break;
 
             default:
@@ -56,12 +47,16 @@ process_cmdline(int argc, char **argv)
                 break;
         }
     }
-    return is_verbose;
+    print_list();
+    write_list();
+    free_list();
+    return EXIT_SUCCESS;
 }
 
 int 
 insert(program_t *new_prog)
 {
+    program_t *temp = NULL;
     if (NULL == new_prog) {
         return -1;
     }
@@ -69,8 +64,11 @@ insert(program_t *new_prog)
         program_list->head = new_prog;
     }
     else { 
-        new_prog->next = program_list->head;
-        program_list->head = new_prog;
+        temp = program_list->head;
+        while (NULL != temp->next) {
+            temp = temp->next;
+        }
+        temp->next = new_prog;
     }
     program_list->count++;
     return program_list->count;
@@ -99,8 +97,9 @@ build_prog(char *prog_name)
 int 
 remove_program(int id)
 {
-    program_t *temp = NULL;
+    program_t *prev = NULL;
     program_t *curr = NULL;
+    program_t *temp = NULL;
 
     if (id < 1) {
         fprintf(stderr, "Invalid id number\n");
@@ -112,63 +111,29 @@ remove_program(int id)
         return 0;
     }
 
-    curr = program_list->head;
-
-    if (id == curr->id) {
-        program_list->head = program_list->head->next;
-        free(curr);
-        curr = NULL;
-        return 0;
+    if (id == program_list->head->id) {
+        temp = program_list->head->next;
+        free(program_list->head);
+        program_list->head = temp;
     }
-
-    while(NULL != curr) {
-        if (id == curr->id) {
-            printf("found the program to remove\n");
-            temp = curr;
-            curr = curr->next;
-            free(temp);
-            temp = NULL;
+    else {
+        prev = program_list->head;
+        curr = program_list->head->next;
+        while(NULL != curr) {
+            if (id == curr->id) {
+                printf("found the program to remove\n");
+                temp = curr->next;
+                free(curr);
+                curr = temp;
+                prev->next = curr;
+            }
+            else {
+                prev = curr;
+                curr = curr->next;
+            }
         }
-        else {
-            curr = curr->next;
-        }
     }
 
-    return 0;
-}
-
-int 
-init_file(void)
-{
-    int ofd = -1;
-    program_t prog1 = {
-        id_global
-        , "helpme"
-        , "/home/tylr/Development/Random/helpMeCode/src"
-        , 0
-        , NULL};
-
-    program_t prog2 = {
-        id_global + 1
-        , "primesMT"
-        , "/home/tylr/Development/School/CS333/labs/lab4"
-        , 0
-        , NULL};
-
-    id_global++;
-
-    ofd = open(FILE_NAME
-            , O_WRONLY | O_TRUNC | O_CREAT
-            , S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-
-    if (ofd < 0) {
-        perror("can't open " FILE_NAME " for output\n");
-        exit(EXIT_FAILURE);
-    }
-
-    write(ofd, &prog1, sizeof(program_t));
-    write(ofd, &prog2, sizeof(program_t));
-    close(ofd);
     return 0;
 }
 
@@ -207,6 +172,7 @@ read_list(void)
     program_t temp = {0, "", "", 0, NULL};
 
     int ifd = -1;
+    int id_align = 1;
     ifd = open(FILE_NAME, O_RDONLY);
 
     if (ifd < 0) {
@@ -220,14 +186,15 @@ read_list(void)
 
     while(read(ifd, &temp, sizeof(program_t)) > 0) {
         program_t *new_prog = (program_t *) calloc(1, sizeof(program_t));
-        new_prog->id = temp.id;
-        id_global = temp.id;
+        new_prog->id = id_align;
         strcpy(new_prog->name, temp.name);
         strcpy(new_prog->path, temp.path);
         new_prog->program_type_flags = temp.program_type_flags;
         new_prog->next = NULL;
         insert(new_prog);
+        id_align++;
     }
+    id_global = id_align;
     close(ifd);
 
     return 0;

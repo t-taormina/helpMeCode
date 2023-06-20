@@ -25,21 +25,15 @@ typedef struct program_s {
     int       id;
     char      name[MAX_NAME_LEN];
     char      path[MAX_PATH_LEN];
-    uint32_t  program_type_flags;
+    uint8_t  program_type_flags;
     struct program_s *next;
 } program_t;
-
-typedef struct program_node_s {
-    struct program_s      program;
-    struct program_node_s *next;
-} program_node_t;
 
 typedef struct program_list_s {
     struct program_s *head;
     int              count;
 } program_list_t;
 
-int run_process(void);
 int process_cmdline(int, char **);
 int insert(struct program_s *);
 struct program_s *build_prog(char *);
@@ -47,7 +41,6 @@ int remove_program(int);
 int free_list(void);
 int print_list(void);
 int write_list(void);
-int init_file(void);
 int read_list(void);
 
 #endif // _LINKED_LIST_H
