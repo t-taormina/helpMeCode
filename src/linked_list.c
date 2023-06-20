@@ -48,6 +48,7 @@ process_cmdline(int argc, char **argv)
             case 'r':
                 arg_id = atoi(optarg);
                 remove_program(arg_id);
+                print_list();
                 break;
 
             default:
@@ -65,11 +66,11 @@ insert(program_t *new_prog)
         return -1;
     }
     if (NULL == program_list->head) {
-        program_list->head = program_list->tail = new_prog;
+        program_list->head = new_prog;
     }
-    else {
-        program_list->tail->next = new_prog;
-        program_list->tail = new_prog;
+    else { 
+        new_prog->next = program_list->head;
+        program_list->head = new_prog;
     }
     program_list->count++;
     return program_list->count;
@@ -98,8 +99,8 @@ build_prog(char *prog_name)
 int 
 remove_program(int id)
 {
-    program_t *curr= NULL;
-    program_t *prev = NULL;
+    program_t *temp = NULL;
+    program_t *curr = NULL;
 
     if (id < 1) {
         fprintf(stderr, "Invalid id number\n");
@@ -111,13 +112,26 @@ remove_program(int id)
         return 0;
     }
 
-    temp = program_list->head;
-    while(NULL != temp->next) {
-        /* first node - head */
+    curr = program_list->head;
 
-        /* middle node */
+    if (id == curr->id) {
+        program_list->head = program_list->head->next;
+        free(curr);
+        curr = NULL;
+        return 0;
+    }
 
-        /* last node - tail */
+    while(NULL != curr) {
+        if (id == curr->id) {
+            printf("found the program to remove\n");
+            temp = curr;
+            curr = curr->next;
+            free(temp);
+            temp = NULL;
+        }
+        else {
+            curr = curr->next;
+        }
     }
 
     return 0;

@@ -22,7 +22,7 @@
 
 
 typedef struct program_s {
-    uint32_t  id;
+    int       id;
     char      name[MAX_NAME_LEN];
     char      path[MAX_PATH_LEN];
     uint32_t  program_type_flags;
@@ -36,7 +36,6 @@ typedef struct program_node_s {
 
 typedef struct program_list_s {
     struct program_s *head;
-    struct program_s *tail;
     int              count;
 } program_list_t;
 
